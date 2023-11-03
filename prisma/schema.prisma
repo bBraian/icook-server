@@ -16,17 +16,14 @@ model User {
   email    String @unique
   password String
 
-  name        String
-  UserSession UserSession[]
+  name String
 }
 
 model UserSession {
   id          Int      @id @default(autoincrement())
-  user_id     Int
-  token       String
+  user_id     Int      @unique
+  token       String   @db.LongText()
   expire_date DateTime
-
-  User User @relation(fields: [user_id], references: [id])
 }
 
 model Ingredients {

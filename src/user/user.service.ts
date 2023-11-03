@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma/prisma.service';
 import * as bcrypt from "bcrypt"
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -24,6 +25,23 @@ export class UserService {
     return this.prismaService.user.findUnique({
       where: { email }
     });
+  }
+  
+  async createUpdateTokenInDB(user: User, token: string) {
+    const registerExist = await this.prismaService.userSession.findUnique({
+      where: { user_id: user.id }
+    })
+    
+    if(registerExist) {
+      const res = await this.prismaService.$queryRaw`
+        UPDATE UserSession
+        SET token = ${token}, expire_date = DATE_ADD(NOW(), INTERVAL 30 DAY)
+        WHERE user_id = ${user.id}`;
+    } else {
+      const res = await this.prismaService.$queryRaw`
+        INSERT INTO UserSession (user_id, token, expire_date) 
+        VALUES (${user.id}, ${token}, DATE_ADD(NOW(), INTERVAL 30 DAY)); `;
+    }
   }
 
   findAll() {
