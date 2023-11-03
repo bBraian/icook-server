@@ -10,6 +10,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id Int @id @default(autoincrement())
+
+  email    String @unique
+  password String
+
+  name        String
+  UserSession UserSession[]
+}
+
+model UserSession {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  token       String
+  expire_date DateTime
+
+  User User @relation(fields: [user_id], references: [id])
+}
+
 model Ingredients {
   id    Int    @id @default(autoincrement())
   name  String @db.VarChar(255)

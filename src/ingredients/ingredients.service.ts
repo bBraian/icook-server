@@ -8,7 +8,9 @@ export class IngredientsService {
   constructor(private prismaService: PrismaService) {}
 
   create(createIngredientDto: CreateIngredientDto) {
-    return 'This action adds a new ingredient';
+    return this.prismaService.ingredients.create({
+      data: createIngredientDto
+    })
   }
 
   findAll() {
@@ -16,14 +18,23 @@ export class IngredientsService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} ingredient`;
+    return this.prismaService.ingredients.findUniqueOrThrow({
+      where: {
+        id
+      }
+    });
   }
 
   update(id: number, updateIngredientDto: UpdateIngredientDto) {
-    return `This action updates a #${id} ingredient`;
+    return this.prismaService.ingredients.update({
+      where: { id },
+      data: updateIngredientDto
+    })
   }
 
   remove(id: number) {
-    return `This action removes a #${id} ingredient`;
+    return this.prismaService.ingredients.delete({
+      where: { id }
+    });
   }
 }

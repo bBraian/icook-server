@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
@@ -27,6 +27,7 @@ export class IngredientsController {
     return this.ingredientsService.update(+id, updateIngredientDto);
   }
 
+  @HttpCode(204) //No content
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.ingredientsService.remove(+id);
