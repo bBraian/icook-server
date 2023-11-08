@@ -35,6 +35,13 @@ export class RecipeService {
       include: {
         ingredient: true,
         RecipeSteps: true,
+        category: true,
+        type: true,
+        user: {
+          select: {
+            name: true,
+          }
+        }
       },
     });
 
@@ -42,8 +49,7 @@ export class RecipeService {
 
     return {
       ...recipe,
-      ratingAmount,
-      averageRating,
+      rating: { ratingAmount, averageRating }
     };
   }
 

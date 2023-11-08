@@ -13,7 +13,7 @@ async function bootstrap() {
       errorHttpStatusCode: 422
     })
   )
-
+  app.enableCors();
   await app.listen(3000);
 }
 bootstrap();
