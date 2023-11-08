@@ -15,42 +15,48 @@ export class RecipeService {
     return `This action returns all recipe`;
   }
 
-  async getRating(id: number): Promise<{ ratingAmount: number; averageRating: number }> {
-    const ratings = await this.prismaService.recipeRating.findMany({
-      where: {
-        recipe_id: id,
-      },
-    });
-
-    const ratingAmount = ratings.length;
-    const somaRatings = ratings.reduce((sum, rating) => sum + rating.rating, 0);
-    const averageRating = ratingAmount > 0 ? somaRatings / ratingAmount : 0;
-
-    return { ratingAmount, averageRating };
-  }
-
   async findOne(id: number) {
-    const recipe = await this.prismaService.recipe.findUnique({
-      where: { id },
-      include: {
-        ingredient: true,
-        RecipeSteps: true,
-        category: true,
-        type: true,
-        user: {
-          select: {
-            name: true,
-          }
-        }
+    const recipe: any = await this.prismaService.$queryRaw`
+    SELECT r.*, u.name, u.avatar, c.name AS category_name, t.name AS type_name,
+    (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
+    (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum,
+    IF((SELECT r.recipe_id 
+        FROM user_saved_recipes r
+        INNER JOIN user_session s ON s.token = 'vamointer'
+        WHERE recipe_id = r.id AND r.user_id = s.user_id) IS NULL, FALSE, TRUE) AS saved
+    FROM recipe r
+    INNER JOIN user u ON u.id = r.user_id
+    LEFT JOIN user_saved_recipes sr ON sr.recipe_id = r.id AND sr.user_id = u.id
+    LEFT JOIN recipe_categories c ON c.id = r.recipe_categories_id
+    LEFT JOIN recipe_types t ON t.id = r.recipe_types_id
+    WHERE r.id = ${id}`;
+
+    const ingredients = await this.prismaService.$queryRaw`
+    SELECT i.name, i.image, ri.amount
+    FROM recipe_ingredients ri
+    INNER JOIN ingredients i ON i.id = ri.ingredient_id
+    WHERE ri.recipe_id = ${id}`;
+
+    const steps = await this.prismaService.recipeSteps.findMany({
+      select: {
+        id: true,
+        description: true
       },
-    });
+      where: {
+        recipe_id:  id 
+      }
+    })
 
-    const { ratingAmount, averageRating } = await this.getRating(id);
-
-    return {
-      ...recipe,
-      rating: { ratingAmount, averageRating }
+    const parsedRecipe = {
+      ...recipe[0],
+      review_amount: Number(recipe[0].review_amount),
+      rating_sum: Number(recipe[0].rating_sum),
+      saved: Boolean(recipe[0].saved),
+      ingredients,
+      steps
     };
+    
+    return parsedRecipe;
   }
 
   update(id: number, updateRecipeDto: UpdateRecipeDto) {
