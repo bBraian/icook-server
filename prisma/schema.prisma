@@ -20,6 +20,7 @@ model User {
 
   Recipe           Recipe[]
   UserSavedRecipes UserSavedRecipes[]
+  RecipeRating     RecipeRating[]
 
   @@map("user")
 }
@@ -90,12 +91,13 @@ model RecipeSteps {
 }
 
 model RecipeRating {
-  id        Int    @id @default(autoincrement())
-  user      String @db.VarChar(255)
+  id        Int @id @default(autoincrement())
+  user_id   Int
   rating    Int
   recipe_id Int
 
   Recipe Recipe? @relation(fields: [recipe_id], references: [id])
+  user   User    @relation(fields: [user_id], references: [id])
 
   @@map("recipe_rating")
 }
