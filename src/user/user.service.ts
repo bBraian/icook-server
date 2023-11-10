@@ -49,8 +49,40 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const user: any = await this.prismaService.$queryRaw`
+    SELECT u.name, u.avatar, u.description,
+    IF((SELECT user_id FROM user_session WHERE token = 'vamointer' AND user_id = ${id}) IS NULL, 0, 1) AS is_me
+    FROM user u
+    WHERE u.id = ${id}`;
+
+    let userRecipes = null;
+    let userSavedRecipes = null;
+    if(Boolean(user[0].is_me)) {
+      userRecipes = await this.prismaService.recipe.findMany({
+        where: { user_id: id }
+      })
+
+      userSavedRecipes = await this.prismaService.userSavedRecipes.findMany({
+        include: { recipe: true },
+        where: { user_id: id }
+      })
+    } else {
+      userRecipes = await this.prismaService.recipe.findMany({
+        where: { user_id: id, private: false }
+      })
+    }
+
+    const parsedUser = {
+      ...user[0],
+      is_me: Boolean(user[0].is_me),
+      recipes: userRecipes,
+      saved_recipes: Boolean(user[0].is_me) ? userSavedRecipes : undefined
+    };
+
+
+    console.log(user)
+    return parsedUser;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

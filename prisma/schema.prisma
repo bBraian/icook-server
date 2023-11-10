@@ -11,12 +11,13 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  password String
-  name     String
-  avatar   String?
-  username String  @unique
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  password    String
+  name        String
+  avatar      String?
+  username    String  @unique
+  description String? @db.MediumText()
 
   Recipe           Recipe[]
   UserSavedRecipes UserSavedRecipes[]
