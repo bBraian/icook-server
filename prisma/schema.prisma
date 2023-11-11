@@ -16,7 +16,7 @@ model User {
   password    String
   name        String
   avatar      String?
-  username    String  @unique
+  username    String? @unique
   description String? @db.MediumText()
 
   Recipe           Recipe[]

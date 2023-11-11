@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma/prisma.service';
@@ -10,10 +10,20 @@ export class UserService {
   constructor(private prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    const emailTaken = await this.prismaService.user.findUnique({
+      where: { email: createUserDto.email }
+    });
+
+    if(emailTaken) {
+      throw new NotFoundException({
+        message: 'Email já utilizado',
+        statusCode: 422,
+      });
+    }
+
     const user = {
       ...createUserDto,
-      password: await bcrypt.hash(createUserDto.password, 5),
-      username: createUserDto.name + '.test'
+      password: await bcrypt.hash(createUserDto.password, 5)
     }
 
     const createdUser = await this.prismaService.user.create({
@@ -35,12 +45,12 @@ export class UserService {
     
     if(registerExist) {
       const res = await this.prismaService.$queryRaw`
-        UPDATE UserSession
+        UPDATE user_session
         SET token = ${token}, expire_date = DATE_ADD(NOW(), INTERVAL 30 DAY)
         WHERE user_id = ${user.id}`;
     } else {
       const res = await this.prismaService.$queryRaw`
-        INSERT INTO UserSession (user_id, token, expire_date) 
+        INSERT INTO user_session (user_id, token, expire_date) 
         VALUES (${user.id}, ${token}, DATE_ADD(NOW(), INTERVAL 30 DAY)); `;
     }
   }

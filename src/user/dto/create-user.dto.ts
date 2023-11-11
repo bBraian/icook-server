@@ -2,7 +2,6 @@ import { User } from '../entities/user.entity';
 import {
   IsEmail,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -12,11 +11,8 @@ export class CreateUserDto extends User {
   email: string;
 
   @IsString()
-  @MinLength(4)
-  @MaxLength(20)
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: 'password too weak',
-  })
+  @MinLength(4 , { message: 'Senha deve ter mais de 4 caracteres' })
+  @MaxLength(20, { message: 'Senha não pode ter mais de 20 caracteres' })
   password: string;
 
   @IsString()
