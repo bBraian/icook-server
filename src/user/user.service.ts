@@ -95,6 +95,14 @@ export class UserService {
     return parsedUser;
   }
 
+  getUser(token: string) {
+    return this.prismaService.$queryRaw`
+    SELECT u.name, u.avatar
+    FROM user_session us
+    INNER JOIN user u ON u.id = us.user_id
+    where us.token = ${token}`;
+  }
+
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
