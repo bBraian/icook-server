@@ -15,7 +15,7 @@ export class RecipeService {
     return `This action returns all recipe`;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, token?: string) {
     const recipe: any = await this.prismaService.$queryRaw`
     SELECT r.*, u.name AS user_name, u.avatar, c.name AS category_name, t.name AS type_name,
     (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
@@ -29,7 +29,7 @@ export class RecipeService {
     (SELECT rating FROM recipe_rating WHERE recipe_id = r.id AND user_id = u.id) AS rate
     FROM recipe r
     INNER JOIN user u ON u.id = r.user_id
-    LEFT JOIN user_session s ON s.token = 'vamointer'
+    LEFT JOIN user_session s ON s.token = ${token}
     LEFT JOIN user_saved_recipes sr ON sr.recipe_id = r.id AND sr.user_id = u.id
     LEFT JOIN recipe_categories c ON c.id = r.recipe_categories_id
     LEFT JOIN recipe_types t ON t.id = r.recipe_types_id

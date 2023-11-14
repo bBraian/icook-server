@@ -59,37 +59,62 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, token?: string) {
     const user: any = await this.prismaService.$queryRaw`
     SELECT u.name, u.avatar, u.description,
-    IF((SELECT user_id FROM user_session WHERE token = 'vamointer' AND user_id = ${id}) IS NULL, 0, 1) AS is_me
+    IF((SELECT user_id FROM user_session WHERE token = ${token} AND user_id = ${id}) IS NULL, 0, 1) AS is_me
     FROM user u
     WHERE u.id = ${id}`;
 
     let userRecipes = null;
     let userSavedRecipes = null;
     if(Boolean(user[0].is_me)) {
-      userRecipes = await this.prismaService.recipe.findMany({
-        where: { user_id: id }
-      })
+      userRecipes = await this.prismaService.$queryRaw`SELECT r.*, 
+      (SELECT COUNT(id) FROM recipe_ingredients WHERE r.id = recipe_id) AS ingredients_amount,
+      (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
+      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
+      FROM recipe r
+      WHERE r.user_id = ${id}`
 
-      userSavedRecipes = await this.prismaService.userSavedRecipes.findMany({
-        include: { recipe: true },
-        where: { user_id: id }
-      })
+      console.log(userRecipes)
+
+      userSavedRecipes = await this.prismaService.$queryRaw`
+      SELECT r.*,
+      (SELECT COUNT(id) FROM recipe_ingredients WHERE r.id = recipe_id) AS ingredients_amount,
+      (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
+      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
+      FROM user_saved_recipes sr
+      INNER JOIN recipe r ON r.id = sr.recipe_id
+      `
     } else {
-      userRecipes = await this.prismaService.recipe.findMany({
-        where: { user_id: id, private: false }
-      })
+      userRecipes = await this.prismaService.$queryRaw`SELECT r.*, 
+      (SELECT COUNT(id) FROM recipe_ingredients WHERE r.id = recipe_id) AS ingredients_amount,
+      (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
+      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
+      FROM recipe r
+      WHERE r.user_id = ${id} AND r.private = FALSE`
     }
+
+    const parsedRecipes = userRecipes.map(recipe => ({
+      ...recipe,
+      ingredients_amount: Number(recipe.ingredients_amount),
+      review_amount: Number(recipe.review_amount),
+      rating_sum: Number(recipe.rating_sum),
+    }));
+
+    const parsedSavedRecipes = userRecipes.map(savedRecipe => ({
+      ...savedRecipe,
+      ingredients_amount: Number(savedRecipe.ingredients_amount),
+      review_amount: Number(savedRecipe.review_amount),
+      rating_sum: Number(savedRecipe.rating_sum),
+    }));
 
     const parsedUser = {
       ...user[0],
       is_me: Boolean(user[0].is_me),
-      recipes: userRecipes,
-      saved_recipes: Boolean(user[0].is_me) ? userSavedRecipes : undefined
+      recipes: parsedRecipes,
+      saved_recipes: Boolean(user[0].is_me) ? parsedSavedRecipes : undefined
     };
-
 
     console.log(user)
     return parsedUser;

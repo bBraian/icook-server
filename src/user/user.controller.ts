@@ -18,8 +18,8 @@ export class UserController {
   // }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param('id') id: string, @Headers('authorization') token?: string) {
+    return this.userService.findOne(+id, token);
   }
 
   @Get()

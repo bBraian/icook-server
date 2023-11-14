@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers } from '@nestjs/common';
 import { RecipeService } from './recipe.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
@@ -18,8 +18,8 @@ export class RecipeController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recipeService.findOne(+id);
+  findOne(@Param('id') id: string, @Headers('authorization') token?: string) {
+    return this.recipeService.findOne(+id, token);
   }
 
   @Patch(':id')
