@@ -55,8 +55,22 @@ export class UserService {
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    const users: any = await this.prismaService.$queryRaw`
+    SELECT u.name, u.avatar, u.id,
+    (SELECT COUNT(id) FROM recipe WHERE user_id = u.id) AS recipe_amount,
+    (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id IN (SELECT id FROM recipe WHERE user_id = u.id)) AS rating_sum,
+    (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id IN (SELECT id FROM recipe WHERE user_id = u.id)) AS rating_count
+    FROM user u`
+
+    const parsedUsers = users.map(user => ({
+      ...user,
+      recipe_amount: Number(user.recipe_amount),
+      rating_sum: Number(user.rating_sum),
+      rating_count: Number(user.rating_count),
+    }));
+
+    return parsedUsers;
   }
 
   async findOne(id: number, token?: string) {
@@ -76,7 +90,6 @@ export class UserService {
       FROM recipe r
       WHERE r.user_id = ${id}`
 
-      console.log(userRecipes)
 
       userSavedRecipes = await this.prismaService.$queryRaw`
       SELECT r.*,
@@ -92,7 +105,7 @@ export class UserService {
       (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
       (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
       FROM recipe r
-      WHERE r.user_id = ${id} AND r.private = FALSE`
+      WHERE r.user_id = ${id} AND r.private = 1`
     }
 
     const parsedRecipes = userRecipes.map(recipe => ({
@@ -116,7 +129,6 @@ export class UserService {
       saved_recipes: Boolean(user[0].is_me) ? parsedSavedRecipes : undefined
     };
 
-    console.log(user)
     return parsedUser;
   }
 

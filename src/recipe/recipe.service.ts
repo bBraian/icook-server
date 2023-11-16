@@ -60,7 +60,6 @@ export class RecipeService {
       ingredients,
       steps
     };
-    console.log(parsedRecipe)
     return parsedRecipe;
   }
 
