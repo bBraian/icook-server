@@ -8,7 +8,7 @@ export class RecipeService {
   constructor(private prismaService: PrismaService) {}
 
   create(createRecipeDto: CreateRecipeDto) {
-    return 'This action adds a new recipe';
+    return createRecipeDto;
   }
 
   findAll() {
