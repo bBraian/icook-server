@@ -1,15 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Headers } from '@nestjs/common';
 import { RecipeService } from './recipe.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
-import { UpdateRecipeDto } from './dto/update-recipe.dto';
 
 @Controller('recipe')
 export class RecipeController {
   constructor(private readonly recipeService: RecipeService) {}
 
   @Post()
-  create(@Body() createRecipeDto: CreateRecipeDto) {
-    return this.recipeService.create(createRecipeDto);
+  create(@Body() createRecipeDto: CreateRecipeDto, @Headers('authorization') token: string) {
+    return this.recipeService.create(createRecipeDto, token);
   }
 
   @Get()
@@ -20,11 +19,6 @@ export class RecipeController {
   @Get(':id')
   findOne(@Param('id') id: string, @Headers('authorization') token?: string) {
     return this.recipeService.findOne(+id, token);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecipeDto: UpdateRecipeDto) {
-    return this.recipeService.update(+id, updateRecipeDto);
   }
 
   @Delete(':id')

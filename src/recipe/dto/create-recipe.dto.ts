@@ -1,5 +1,33 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsString, MaxLength, MinLength, ValidateNested } from "class-validator";
 import { Recipe } from "../entities/recipe.entity";
+
+class Ingredient {
+    @IsNumber()
+    @IsNotEmpty()
+    id: number;
+
+    @IsNumber()
+    @IsNotEmpty()
+    ingredientId: number;
+
+    @IsString()
+    ingredientName: string;
+
+    @IsString()
+    ingredientImg: string;
+
+    @IsString()
+    amount: string;
+}
+
+class Step {
+    @IsNumber()
+    @IsNotEmpty()
+    id: number;
+
+    @IsString()
+    text: string;
+}
 
 export class CreateRecipeDto extends Recipe {
     @IsString()
@@ -28,4 +56,10 @@ export class CreateRecipeDto extends Recipe {
 
     @IsBoolean()
     private: boolean;
+
+    @ValidateNested({ each: true })
+    ingredients: Ingredient;
+
+    @ValidateNested({ each: true })
+    steps: Step;
 }

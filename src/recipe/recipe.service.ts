@@ -1,14 +1,62 @@
 import { Injectable } from '@nestjs/common';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
-import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { PrismaService } from 'src/prisma/prisma/prisma.service';
 
 @Injectable()
 export class RecipeService {
   constructor(private prismaService: PrismaService) {}
 
-  create(createRecipeDto: CreateRecipeDto) {
-    return createRecipeDto;
+  async create(createRecipeDto: CreateRecipeDto, token: string) {
+    try {
+      const userSession: any = await this.prismaService.$queryRaw`
+      SELECT user_id
+      FROM user_session
+      WHERE token = ${token}`;
+
+      const res = await this.prismaService.recipe.create({
+        data: {
+          recipe_categories_id: createRecipeDto.categoryId,
+          recipe_types_id: createRecipeDto.typeId,
+          name: createRecipeDto.title,
+          image: createRecipeDto.image,
+          serves: createRecipeDto.serves,
+          kitchen_time: createRecipeDto.cookTime,
+          private: createRecipeDto.private,
+          user_id: userSession[0].user_id
+        }
+      })
+
+      const recipeId = res.id
+
+      const ingredients: any = createRecipeDto.ingredients;
+      const steps: any = createRecipeDto.steps;
+
+      //insert ingredients
+      ingredients.map(ingredient => {
+        this.prismaService.recipeIngredients.create({
+          data: {
+            recipe_id: recipeId,
+            ingredient_id: ingredient.ingredientId,
+            amount: ingredient.amount
+          }
+        })
+      })
+
+      //insert steps
+      steps.map(step => {
+        this.prismaService.recipeSteps.create({
+          data: {
+            recipe_id: recipeId,
+            description: step.text
+          }
+        })
+      })
+
+      console.log(createRecipeDto)
+      return createRecipeDto;
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   findAll() {
@@ -61,10 +109,6 @@ export class RecipeService {
       steps
     };
     return parsedRecipe;
-  }
-
-  update(id: number, updateRecipeDto: UpdateRecipeDto) {
-    return `This action updates a #${id} recipe`;
   }
 
   remove(id: number) {
