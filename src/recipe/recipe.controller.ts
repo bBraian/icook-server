@@ -11,7 +11,7 @@ export class RecipeController {
     return this.recipeService.create(createRecipeDto, token);
   }
 
-  @Get()
+  @Get('/all')
   findAll() {
     return this.recipeService.findAll();
   }

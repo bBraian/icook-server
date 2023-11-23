@@ -60,7 +60,7 @@ model Recipe {
   created_at           DateTime @default(now())
 
   ingredient       RecipeIngredients[]
-  RecipeSteps      RecipeSteps[]
+  steps            RecipeSteps[]
   RecipeRating     RecipeRating[]
   UserSavedRecipes UserSavedRecipes[]
   category         RecipeCategories    @relation(fields: [recipe_categories_id], references: [id])

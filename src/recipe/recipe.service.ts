@@ -30,10 +30,10 @@ export class RecipeService {
 
       const ingredients: any = createRecipeDto.ingredients;
       const steps: any = createRecipeDto.steps;
-
       //insert ingredients
-      ingredients.map(ingredient => {
-        this.prismaService.recipeIngredients.create({
+      ingredients.map(async ingredient => {
+        console.log(ingredient)
+        await this.prismaService.recipeIngredients.create({
           data: {
             recipe_id: recipeId,
             ingredient_id: ingredient.ingredientId,
@@ -43,8 +43,8 @@ export class RecipeService {
       })
 
       //insert steps
-      steps.map(step => {
-        this.prismaService.recipeSteps.create({
+      steps.map(async step => {
+        await this.prismaService.recipeSteps.create({
           data: {
             recipe_id: recipeId,
             description: step.text
@@ -52,7 +52,7 @@ export class RecipeService {
         })
       })
 
-      console.log(createRecipeDto)
+      // console.log(createRecipeDto)
       return createRecipeDto;
     } catch (error) {
       console.log(error)
@@ -60,7 +60,12 @@ export class RecipeService {
   }
 
   findAll() {
-    return `This action returns all recipe`;
+    return this.prismaService.recipe.findMany({
+      include: {
+        ingredient: true,
+        RecipeSteps: true,
+      }
+    });
   }
 
   async findOne(id: number, token?: string) {
@@ -112,6 +117,8 @@ export class RecipeService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} recipe`;
+    return this.prismaService.recipe.delete({
+      where: {id}
+    });
   }
 }
