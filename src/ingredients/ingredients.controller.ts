@@ -12,7 +12,7 @@ export class IngredientsController {
     return this.ingredientsService.create(createIngredientDto);
   }
 
-  @Get()
+  @Get('/all')
   findAll() {
     return this.ingredientsService.findAll();
   }

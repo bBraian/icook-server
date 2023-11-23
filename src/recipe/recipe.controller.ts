@@ -11,6 +11,11 @@ export class RecipeController {
     return this.recipeService.create(createRecipeDto, token);
   }
 
+  @Get('/trending')
+  trending(@Headers('authorization') token?: string) {
+    return this.recipeService.trending(token);
+  }
+
   @Get('/all')
   findAll() {
     return this.recipeService.findAll();
