@@ -116,7 +116,6 @@ export class RecipeService {
   }
 
   async trending(token?: string) {
-    console.log('asfas')
     const recipes: any = await this.prismaService.$queryRaw`
     SELECT r.*, u.name AS user_name, u.avatar, c.name AS category_name, t.name AS type_name,
     (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
@@ -128,7 +127,7 @@ export class RecipeService {
     FROM recipe_rating rr
     WHERE rr.recipe_id = r.id AND rr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS rated,
     (SELECT rating FROM recipe_rating WHERE recipe_id = r.id AND user_id = u.id) AS rate,
-    (SELECT COUNT(id) FROM recipe_ingredients WHERE recipe_id = r.id) AS ingredients_amount
+    (SELECT COUNT(i.id) FROM recipe_ingredients i WHERE i.recipe_id = r.id) AS ingredients_amount
     FROM recipe r
     INNER JOIN user u ON u.id = r.user_id
     LEFT JOIN user_session s ON s.token = ${token}
@@ -142,7 +141,7 @@ export class RecipeService {
       rating_sum: Number(recipe.rating_sum),
       saved: Boolean(recipe.saved),
       rated: Boolean(recipe.rated),
-      ingredients_amount: Number(recipe.rating_sum),
+      ingredients_amount: Number(recipe.ingredients_amount),
     }));
 
     return parsedRecipe;
