@@ -105,7 +105,7 @@ export class UserService {
       (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
       (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
       FROM recipe r
-      WHERE r.user_id = ${id} AND r.private = 1`
+      WHERE r.user_id = ${id} AND r.private = 0`
     }
 
     const parsedRecipes = userRecipes.map(recipe => ({
