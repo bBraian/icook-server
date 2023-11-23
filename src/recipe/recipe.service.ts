@@ -62,8 +62,7 @@ export class RecipeService {
   findAll() {
     return this.prismaService.recipe.findMany({
       include: {
-        ingredient: true,
-        RecipeSteps: true,
+        ingredient: true
       }
     });
   }
