@@ -53,7 +53,7 @@ export class RecipeService {
       })
 
       // console.log(createRecipeDto)
-      return createRecipeDto;
+      return { ...createRecipeDto, id: recipeId};
     } catch (error) {
       console.log(error)
     }
