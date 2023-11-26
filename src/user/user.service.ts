@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma/prisma.service';
@@ -140,11 +140,79 @@ export class UserService {
     where us.token = ${token}`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto, token :string) {
+    const canUpdate = await this.prismaService.$queryRaw`
+    SELECT id
+    FROM user_session
+    WHERE token = ${token} AND user_id = ${id}`;
+
+    console.log(canUpdate)
+    if(!canUpdate[0]) {
+      throw new UnauthorizedException('Sem permissão');
+    }
+
+    const updateUser = await this.prismaService.user.update({
+      data: { 
+        name: updateUserDto.name,
+        description: updateUserDto.description
+      },
+      where: { id }
+    })
+
+    const userReturn = { name: updateUser.name, description: updateUser.description }
+
+    return userReturn;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.prismaService.user.delete({
+      where: {id}
+    })
+  }
+
+  async saveRecipe(recipeId: number, token: string) {
+    const user = await this.prismaService.$queryRaw`
+    SELECT id
+    FROM user_session
+    WHERE token = ${token}`;
+    
+    if(!user[0]) {
+      throw new UnauthorizedException('Sem permissão');
+    }
+
+    const userId = user[0].id
+
+    const recipe = await this.prismaService.recipe.findUnique({
+      where: { id: recipeId }
+    });
+    
+    if(!recipe) {
+      throw new NotFoundException('Receita não encontrada');
+    }
+
+    const saved_recipe = await this.prismaService.userSavedRecipes.create({
+      data: { recipe_id: recipeId, user_id: userId }
+    })
+
+    return saved_recipe;
+  }
+
+  async unsaveRecipe(recipeId: number, token: string) {
+    const user = await this.prismaService.$queryRaw`
+    SELECT id
+    FROM user_session
+    WHERE token = ${token}`;
+    
+    if(!user[0]) {
+      throw new UnauthorizedException('Sem permissão');
+    }
+
+    const userId = user[0].id
+
+    const saved_recipe = await this.prismaService.$queryRaw`
+    DELETE FROM user_saved_recipes
+    WHERE user_id = ${userId} AND recipe_id = ${recipeId}`;
+
+    return saved_recipe;
   }
 }

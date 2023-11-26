@@ -29,13 +29,13 @@ export class AuthService {
         const user = await this.userService.findUserByEmail(email)
 
         if(!user) {
-            throw new Error('User not found.');
+            throw new Error('Usuário não encontrado.');
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password)
 
         if(!isPasswordValid) {
-            throw new Error('Wrong password.');
+            throw new Error('Senha Errada.');
         }
 
         return { ...user, password: undefined }

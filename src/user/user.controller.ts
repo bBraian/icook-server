@@ -27,18 +27,23 @@ export class UserController {
     return this.userService.getUser(token);
   }
 
-  // @Get(':email')
-  // findUserByEmail(@Param('email') email: string) {
-  //   return this.userService.findUserByEmail(email);
-  // }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Headers('authorization') token: string) {
+    return this.userService.update(+id, updateUserDto, token);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
+  }
+
+  @Post('/save-recipe/:id')
+  saveRecipe(@Param('id') id: number, @Headers('authorization') token: string) {
+    return this.userService.saveRecipe(+id, token);
+  }
+
+  @Delete('/unsave-recipe/:id')
+  unsaveRecipe(@Param('id') id: number, @Headers('authorization') token: string) {
+    return this.userService.unsaveRecipe(+id, token);
   }
 }

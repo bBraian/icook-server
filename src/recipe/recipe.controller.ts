@@ -30,4 +30,9 @@ export class RecipeController {
   remove(@Param('id') id: string) {
     return this.recipeService.remove(+id);
   }
+
+  @Patch('/rate/:id')
+  rateRecipe(@Param('id') id: number, @Headers('authorization') token: string, @Body('rate') rate: number) {
+    return this.recipeService.rateRecipe(+id, token, rate);
+  }
 }

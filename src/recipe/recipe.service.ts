@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { PrismaService } from 'src/prisma/prisma/prisma.service';
 
@@ -151,5 +151,41 @@ export class RecipeService {
     return this.prismaService.recipe.delete({
       where: {id}
     });
+  }
+
+  async rateRecipe(id: number, token: string, rate: number) {
+    const userId = await this.prismaService.$queryRaw`
+    SELECT id
+    FROM user_session
+    WHERE token = ${token}`;
+    
+    if(!userId[0]) {
+      throw new UnauthorizedException('Sem permissão');
+    }
+
+    const user = userId[0].id
+
+    const alreadyExist = await this.prismaService.$queryRaw`
+    SELECT id 
+    FROM recipe_rating
+    WHERE recipe_id = ${id} AND user_id = ${user}`;
+
+    if(!rate) {
+      throw new ForbiddenException('Rate forbidden')
+    }
+
+    let res = {};
+    if(alreadyExist[0]) {
+      res = await this.prismaService.$queryRaw`
+      UPDATE recipe_rating
+      SET rating = ${rate} 
+      WHERE recipe_id = ${id} AND user_id = ${user}`;
+    } else {
+      res = await this.prismaService.$queryRaw`
+      INSERT INTO recipe_rating (user_id, rating, recipe_id) 
+      VALUES (${user}, ${rate}, ${id})`;
+    }
+
+    return res
   }
 }
