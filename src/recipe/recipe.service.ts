@@ -72,9 +72,9 @@ export class RecipeService {
     SELECT r.*, u.name AS user_name, u.avatar, c.name AS category_name, t.name AS type_name,
     (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
     (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum,
-    IF((SELECT r.recipe_id 
-    FROM user_saved_recipes r
-    WHERE recipe_id = r.id AND r.user_id = s.user_id) IS NULL, FALSE, TRUE) AS saved,
+    IF((SELECT usr.recipe_id 
+    FROM user_saved_recipes usr
+    WHERE usr.recipe_id = r.id AND usr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS saved,
     IF((SELECT rr.id
     FROM recipe_rating rr
     WHERE rr.recipe_id = r.id AND rr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS rated,
