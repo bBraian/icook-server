@@ -58,9 +58,9 @@ export class UserService {
   async findAll() {
     const users: any = await this.prismaService.$queryRaw`
     SELECT u.name, u.avatar, u.id,
-    (SELECT COUNT(id) FROM recipe WHERE user_id = u.id) AS recipe_amount,
-    (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id IN (SELECT id FROM recipe WHERE user_id = u.id)) AS rating_sum,
-    (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id IN (SELECT id FROM recipe WHERE user_id = u.id)) AS rating_count
+    (SELECT COUNT(id) FROM recipe WHERE user_id = u.id AND private = 0) AS recipe_amount,
+    (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id IN (SELECT id FROM recipe WHERE user_id = u.id AND private = 0)) AS rating_sum,
+    (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id IN (SELECT id FROM recipe WHERE user_id = u.id AND private = 0)) AS rating_count
     FROM user u`
 
     const parsedUsers = users.map(user => ({
