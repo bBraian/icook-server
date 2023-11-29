@@ -80,8 +80,8 @@ export class UserService {
     FROM user u
     WHERE u.id = ${id}`;
 
-    let userRecipes = null;
-    let userSavedRecipes = null;
+    let userRecipes = [];
+    let userSavedRecipes = [];
     if(Boolean(user[0].is_me)) {
       userRecipes = await this.prismaService.$queryRaw`SELECT r.*, 
       (SELECT COUNT(id) FROM recipe_ingredients WHERE r.id = recipe_id) AS ingredients_amount,
@@ -115,7 +115,7 @@ export class UserService {
       rating_sum: Number(recipe.rating_sum),
     }));
 
-    const parsedSavedRecipes = userRecipes.map(savedRecipe => ({
+    const parsedSavedRecipes = userSavedRecipes.map(savedRecipe => ({
       ...savedRecipe,
       ingredients_amount: Number(savedRecipe.ingredients_amount),
       review_amount: Number(savedRecipe.review_amount),
