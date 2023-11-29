@@ -16,6 +16,11 @@ export class RecipeController {
     return this.recipeService.trending(token);
   }
 
+  @Get('/recent')
+  recent(@Headers('authorization') token?: string) {
+    return this.recipeService.recent(token);
+  }
+
   @Get('/all')
   findAll() {
     return this.recipeService.findAll();

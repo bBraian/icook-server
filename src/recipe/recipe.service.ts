@@ -133,7 +133,9 @@ export class RecipeService {
     LEFT JOIN user_session s ON s.token = ${token}
     LEFT JOIN user_saved_recipes sr ON sr.recipe_id = r.id AND sr.user_id = u.id
     LEFT JOIN recipe_categories c ON c.id = r.recipe_categories_id
-    LEFT JOIN recipe_types t ON t.id = r.recipe_types_id`;
+    LEFT JOIN recipe_types t ON t.id = r.recipe_types_id
+    WHERE r.private = 0
+    LIMIT 25`;
 
     const parsedRecipe = recipes.map(recipe => ({
       ...recipe,
@@ -142,9 +144,26 @@ export class RecipeService {
       saved: Boolean(recipe.saved),
       rated: Boolean(recipe.rated),
       ingredients_amount: Number(recipe.ingredients_amount),
+      rating: Number(Number(recipe.rating_sum) / Number(recipe.review_amount))
     }));
 
     return parsedRecipe;
+  }
+
+  async recent(token?: string) {
+    const recipes: any = await this.prismaService.$queryRaw`
+    SELECT r.*, u.name AS user_name, c.name AS category_name, t.name AS type_name
+    FROM recipe r
+    INNER JOIN user u ON u.id = r.user_id
+    LEFT JOIN user_session s ON s.token = ${token}
+    LEFT JOIN user_saved_recipes sr ON sr.recipe_id = r.id AND sr.user_id = u.id
+    LEFT JOIN recipe_categories c ON c.id = r.recipe_categories_id
+    LEFT JOIN recipe_types t ON t.id = r.recipe_types_id
+    WHERE r.private = 0
+    ORDER BY r.created_at DESC
+    LIMIT 30`;
+
+    return recipes;
   }
 
   remove(id: number) {
