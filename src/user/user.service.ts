@@ -80,16 +80,23 @@ export class UserService {
     FROM user u
     WHERE u.id = ${id}`;
 
+    if(user.length == 0) {
+      throw new NotFoundException({
+        message: 'Usuário não encontrado',
+        statusCode: 404,
+      });
+    }
+
     let userRecipes = [];
     let userSavedRecipes = [];
     if(Boolean(user[0].is_me)) {
       userRecipes = await this.prismaService.$queryRaw`SELECT r.*, 
       (SELECT COUNT(id) FROM recipe_ingredients WHERE r.id = recipe_id) AS ingredients_amount,
       (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
-      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
+      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum,
+      FALSE AS saved
       FROM recipe r
       WHERE r.user_id = ${id}`
-
 
       userSavedRecipes = await this.prismaService.$queryRaw`
       SELECT r.*,
@@ -103,8 +110,12 @@ export class UserService {
       userRecipes = await this.prismaService.$queryRaw`SELECT r.*, 
       (SELECT COUNT(id) FROM recipe_ingredients WHERE r.id = recipe_id) AS ingredients_amount,
       (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
-      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum
+      (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum,
+      IF((SELECT usr.recipe_id 
+      FROM user_saved_recipes usr
+      WHERE usr.recipe_id = r.id AND usr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS saved
       FROM recipe r
+      LEFT JOIN user_session s ON s.token = ${token}
       WHERE r.user_id = ${id} AND r.private = 0`
     }
 
@@ -113,6 +124,7 @@ export class UserService {
       ingredients_amount: Number(recipe.ingredients_amount),
       review_amount: Number(recipe.review_amount),
       rating_sum: Number(recipe.rating_sum),
+      saved: Boolean(recipe.saved),
     }));
 
     const parsedSavedRecipes = userSavedRecipes.map(savedRecipe => ({
