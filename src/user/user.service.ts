@@ -75,7 +75,7 @@ export class UserService {
 
   async findOne(id: number, token?: string) {
     const user: any = await this.prismaService.$queryRaw`
-    SELECT u.name, u.avatar, u.description,
+    SELECT u.name, u.avatar, u.description, u.id,
     IF((SELECT user_id FROM user_session WHERE token = ${token} AND user_id = ${id}) IS NULL, 0, 1) AS is_me
     FROM user u
     WHERE u.id = ${id}`;
