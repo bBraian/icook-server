@@ -21,6 +21,11 @@ export class RecipeController {
     return this.recipeService.recent(token);
   }
 
+  @Get('/search')
+  search(@Body() data, @Headers('authorization') token?: string) {
+    return this.recipeService.search(data, token);
+  }
+
   @Get('/all')
   findAll() {
     return this.recipeService.findAll();

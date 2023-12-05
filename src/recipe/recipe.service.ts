@@ -150,6 +150,62 @@ export class RecipeService {
     return parsedRecipe;
   }
 
+  async search(filter: any, token?: string) {
+    let where = [];
+    if(filter.category != '0') {
+      where.push(`r.recipe_categories_id = ${filter.category}`)
+    }
+    if(filter.serves != '0') {
+      where.push(`r.serves = ${filter.serves}`)
+    }
+    if(filter.type != '0') {
+      where.push(`r.recipe_types_id = ${filter.type}`)
+    }
+    if(filter.name != '') {
+      where.push(`LOWER(r.name) LIKE LOWER(%${filter.name}%)`)
+    }
+    if(filter.ingredient.length > 0) {
+      filter.ingredient.forEach(ingredient => {
+        where.push(`i.ingredient_id = ${ingredient.id}`)
+      });
+    }
+
+    return where;
+
+    // const recipes: any = await this.prismaService.$queryRaw`
+    // SELECT r.*, u.name AS user_name, u.avatar, c.name AS category_name, t.name AS type_name,
+    // (SELECT COUNT(id) FROM recipe_rating WHERE recipe_id = r.id) AS review_amount,
+    // (SELECT SUM(rating) FROM recipe_rating WHERE recipe_id = r.id) AS rating_sum,
+    // IF((SELECT usr.recipe_id 
+    // FROM user_saved_recipes usr
+    // WHERE usr.recipe_id = r.id AND usr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS saved,
+    // IF((SELECT rr.id
+    // FROM recipe_rating rr
+    // WHERE rr.recipe_id = r.id AND rr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS rated,
+    // (SELECT rating FROM recipe_rating WHERE recipe_id = r.id AND user_id = u.id) AS rate,
+    // (SELECT COUNT(i.id) FROM recipe_ingredients i WHERE i.recipe_id = r.id) AS ingredients_amount
+    // FROM recipe r
+    // INNER JOIN user u ON u.id = r.user_id
+    // INNER JOIN recipe_ingredients i ON i.recipe_id = r.id
+    // LEFT JOIN user_session s ON s.token = ${token}
+    // LEFT JOIN user_saved_recipes sr ON sr.recipe_id = r.id AND sr.user_id = u.id
+    // LEFT JOIN recipe_categories c ON c.id = r.recipe_categories_id
+    // LEFT JOIN recipe_types t ON t.id = r.recipe_types_id
+    // WHERE r.private = 0`;
+
+    // const parsedRecipe = recipes.map(recipe => ({
+    //   ...recipe,
+    //   review_amount: Number(recipe.review_amount),
+    //   rating_sum: Number(recipe.rating_sum),
+    //   saved: Boolean(recipe.saved),
+    //   rated: Boolean(recipe.rated),
+    //   ingredients_amount: Number(recipe.ingredients_amount),
+    //   rating: Number(Number(recipe.rating_sum) / Number(recipe.review_amount))
+    // }));
+
+    // return parsedRecipe;
+  }
+
   async recent(token?: string) {
     const recipes: any = await this.prismaService.$queryRaw`
     SELECT r.*, u.name AS user_name, c.name AS category_name, t.name AS type_name
