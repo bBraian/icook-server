@@ -146,7 +146,7 @@ export class UserService {
 
   getUser(token: string) {
     return this.prismaService.$queryRaw`
-    SELECT u.name, u.avatar
+    SELECT u.name, u.avatar, u.id
     FROM user_session us
     INNER JOIN user u ON u.id = us.user_id
     where us.token = ${token}`;
