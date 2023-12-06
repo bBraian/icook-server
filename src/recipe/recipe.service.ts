@@ -77,7 +77,7 @@ export class RecipeService {
     WHERE usr.recipe_id = r.id AND usr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS saved,
     IF((SELECT rr.id
     FROM recipe_rating rr
-    WHERE rr.recipe_id = r.id AND rr.user_id = s.user_id) IS NULL, FALSE, TRUE) AS rated,
+    WHERE rr.recipe_id = r.id AND rr.user_id = s.id) IS NULL, FALSE, TRUE) AS rated,
     (SELECT cr.rating FROM recipe_rating cr WHERE cr.recipe_id = r.id AND cr.user_id = s.id) AS rate
     FROM recipe r
     INNER JOIN user u ON u.id = r.user_id
